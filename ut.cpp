@@ -10,14 +10,14 @@ qDebug() << "start Ut";
 	ui.setupUi(this);
 	connect(ui.convert, SIGNAL(clicked()), this, SLOT(read_write()));
 	connect(ui.file, SIGNAL(textChanged(QString)), this, SLOT(newfile()));
+	connect(ui.dir, SIGNAL(textChanged(QString)), this, SLOT(newdir()));
 	connect(ui.convert, SIGNAL(pressed()), this, SLOT(processing()));
 
 	red.setColor(QPalette::Base,QColor(Qt::red));
 	white.setColor(QPalette::Base,QColor(Qt::white));
 
 //	filename = "..\\data\\" + ui.file->text() + "maindata_lt.txt";
-
-	newfile();
+	if (read_cfg())	newfile();
 qDebug() << "stop Ut";
 }
 
@@ -193,11 +193,12 @@ qDebug() << qdate << qtime << qdt;
 	else if (ui.b1875->isChecked()) from = QDateTime(QDate(1875, 1, 1), QTime(0,0,0));
 	else if (ui.b1855->isChecked()) from = QDateTime(QDate(1855, 1, 1), QTime(0,0,0));
 
-	int Tsec = from.secsTo(QDateTime(QDate(2000, 1, 1), QTime(0,0,0)));
+	double Tsec = from.secsTo(QDateTime(QDate(1950, 1, 1), QTime(0,0,0)));
+	Tsec += QDateTime(QDate(1950, 1, 1), QTime(0,0,0)).secsTo(QDateTime(QDate(2000, 1, 1), QTime(0,0,0)));
 
 	double Tyear = 365.242190*24*60*60;
 	double T = -Tsec/Tyear;
-qDebug() << Tsec << Tyear << T;
+qDebug() << "hhh" << Tsec << Tyear << T;
 
 	const int COORD = 14;
 
@@ -255,6 +256,7 @@ qDebug() << "ERROR2";
 	inp.close();
 	out.close();
 
+	write_cfg();
 	ui.convert->setText("DONE!");
 	ui.convert->setDisabled(true);
 qDebug() << "end read_write";	
@@ -262,8 +264,26 @@ qDebug() << "end read_write";
 /********************** slots *****************************************/
 void Ut::newfile()
 {
-	QString s = "..\\data\\" + ui.file->text() + ui.label4->text();
+	QString s = ui.dir->text() + ui.file->text() + ui.label4->text();
 qDebug() << "newfile:" << s;
+	QFileInfo f(s);
+	if (f.isFile()) 
+	{
+		ui.file->setPalette(white);
+		ui.convert->setDisabled(false);
+		filename = s;
+	}
+	else 
+	{
+		ui.file->setPalette(red);
+		ui.convert->setDisabled(true);
+	}
+}
+
+void Ut::newdir()
+{
+	QString s = ui.dir->text() + ui.file->text() + ui.label4->text();
+qDebug() << "newdir:" << s;
 	QFileInfo f(s);
 	if (f.isFile()) 
 	{
@@ -283,4 +303,55 @@ void Ut::processing()
 	ui.convert->setText("Processing...");
 	ui.convert->update();
 }
+///////////////////////////////////////////////
+bool Ut::read_cfg()
+{
+qDebug() << "begin read_cfg";
+	QFile inp("epochtool.cfg");
+	if (!inp.open(QFile::ReadOnly))
+	{
+qDebug() << "no epochtool.cfg file!";
+		return false;
+	}
+	QTextStream text(&inp);
+	int num;
+	text >> num; if (num == 1) ui.obst->setChecked(true);
+	text >> num; if (num == 1) ui.b1975->setChecked(true);
+	text >> num; if (num == 1) ui.b1950->setChecked(true);
+	text >> num; if (num == 1) ui.b1900->setChecked(true);
+	text >> num; if (num == 1) ui.b1875->setChecked(true);
+	text >> num; if (num == 1) ui.b1855->setChecked(true);
+
+	QString fname;
+	text >> fname;
+	QString dir;
+	text >> dir;
+
+	ui.file->setText(fname);
+	ui.dir->setText(dir);
+	inp.close();
+qDebug() << "end read_cfg";	
+	return true;
+}
+
+void Ut::write_cfg()
+{
+	QFile out("epochtool.cfg");
+	if (!out.open(QFile::WriteOnly))
+	{
+qDebug() << "ERROR222";
+		return;
+	}
+	QTextStream text(&out);
+
+	text << ((ui.obst->isChecked()) ? 1  : 0) << " " 
+		<< ((ui.b1975->isChecked()) ? 1  : 0) << " " 
+		<< ((ui.b1950->isChecked()) ? 1  : 0) << " " 
+		<< ((ui.b1900->isChecked()) ? 1  : 0) << " "  
+		<< ((ui.b1875->isChecked()) ? 1  : 0) << " " 
+		<< ((ui.b1855->isChecked()) ? 1  : 0) << endl;
+	text << ui.file->text() << endl;
+	text << ui.dir->text();
+	out.close();
+}	
 

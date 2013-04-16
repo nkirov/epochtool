@@ -19,10 +19,13 @@ class Ut : public QDialog
 		double hours(int, double, double);
 		QString h2hhmmss(double);
 		QString conv(QString);
+		bool read_cfg();
+		void write_cfg();
 	
 	public slots:
 		void read_write();
 		void newfile();
+		void newdir();
 		void processing();
 };
 #endif
