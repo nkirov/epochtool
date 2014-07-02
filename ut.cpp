@@ -272,6 +272,7 @@ qDebug() << "newfile:" << s;
 		ui.file->setPalette(white);
 		ui.convert->setDisabled(false);
 		filename = s;
+		ui.label12->setText(ui.file->text() + "maindada_ok.txt");
 	}
 	else 
 	{
@@ -290,6 +291,7 @@ qDebug() << "newdir:" << s;
 		ui.file->setPalette(white);
 		ui.convert->setDisabled(false);
 		filename = s;
+		ui.label12->setText(ui.file->text() + "maindada_ok.txt");
 	}
 	else 
 	{
